@@ -18,7 +18,7 @@ public partial class StudioChatItem : ObservableObject
 {
     public string Id { get; } = Guid.NewGuid().ToString("N");
 
-    [ObservableProperty] private string _title = "Sohbet 1";
+    [ObservableProperty] private string _title = string.Empty;
 
     public List<ImageAttachmentItem> Attachments { get; set; } = [];
     public byte[]? ResultBytes { get; set; }

@@ -6,6 +6,7 @@ using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HalimLabs.Configuration;
+using HalimLabs.Localization;
 using HalimLabs.Models;
 using HalimLabs.Services.Abstractions;
 using HalimLabs.Services.Image;
@@ -49,15 +50,19 @@ public partial class MainViewModel : ObservableObject
         _settingsFactory = settingsFactory;
         _helpFactory = helpFactory;
 
-        var support = _supportInfoProvider.Current;
-        FooterText = support.FooterText;
-        SupportText = support.SupportText;
-
-        var first = new StudioChatItem { Title = "Sohbet 1" };
+        var first = new StudioChatItem { Title = Loc.Tf("ChatTitle", 1) };
         Chats.Add(first);
         _selectedChat = first;
+        SelectedLanguage = Languages.First(l => l.Code == Loc.Current.Language.ToCode());
+        Loc.Current.LanguageChanged += OnLanguageChanged;
         RefreshAttachmentHint();
     }
+
+    public IReadOnlyList<LanguageOption> Languages { get; } =
+    [
+        new("tr", "Türkçe"),
+        new("en", "English")
+    ];
 
     public ObservableCollection<ImageModelProfile> Profiles { get; } = [];
     public ObservableCollection<StudioChatItem> Chats { get; } = [];
@@ -66,16 +71,15 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private ImageModelProfile? _selectedProfile;
     [ObservableProperty] private StudioChatItem? _selectedChat;
     [ObservableProperty] private string _prompt = string.Empty;
-    [ObservableProperty] private string _statusText = "Ready";
+    [ObservableProperty] private LanguageOption? _selectedLanguage;
+    [ObservableProperty] private string _statusText = Loc.T("Ready");
     [ObservableProperty] private string _translatedPrompt = string.Empty;
     [ObservableProperty] private bool _isGenerating;
     [ObservableProperty] private ImageSource? _previewImage;
     [ObservableProperty] private ImageSource? _compareSourceImage;
     [ObservableProperty] private bool _isCompareMode;
-    [ObservableProperty] private string _footerText = string.Empty;
-    [ObservableProperty] private string _supportText = string.Empty;
-    [ObservableProperty] private string _attachmentHint = "0/5 görsel";
-    [ObservableProperty] private string _modeHint = "Metinden görsel · NVIDIA";
+    [ObservableProperty] private string _attachmentHint = Loc.Tf("AttachmentHint", 0, ImageModelPresets.MaxImagesPerChat);
+    [ObservableProperty] private string _modeHint = Loc.T("ModeTextToImage");
 
     public bool CanGenerate =>
         !IsGenerating && !string.IsNullOrWhiteSpace(Prompt) && SelectedProfile is not null;
@@ -136,10 +140,48 @@ public partial class MainViewModel : ObservableObject
             _suppressProfileSave = false;
         }
 
-        StatusText = SelectedProfile is null || string.IsNullOrWhiteSpace(SelectedProfile.ApiKey)
-            ? "Add API key in Settings"
-            : "Ready";
+        RefreshReadyStatus();
         RefreshModeHint();
+    }
+
+    partial void OnSelectedLanguageChanged(LanguageOption? value)
+    {
+        if (value is null)
+            return;
+        Loc.Current.SetLanguage(value.Code);
+    }
+
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher is null)
+        {
+            ApplyLanguageChange();
+            return;
+        }
+
+        if (dispatcher.CheckAccess())
+            ApplyLanguageChange();
+        else
+            dispatcher.Invoke(ApplyLanguageChange);
+    }
+
+    private void ApplyLanguageChange()
+    {
+        for (var i = 0; i < Chats.Count; i++)
+            Chats[i].Title = Loc.Tf("ChatTitle", i + 1);
+
+        RefreshAttachmentHint();
+        RefreshModeHint();
+        if (!IsGenerating)
+            RefreshReadyStatus();
+    }
+
+    private void RefreshReadyStatus()
+    {
+        StatusText = SelectedProfile is null || string.IsNullOrWhiteSpace(SelectedProfile.ApiKey)
+            ? Loc.T("AddApiKey")
+            : Loc.T("Ready");
     }
 
     private async Task PersistActiveProfileAsync(string profileId)
@@ -160,7 +202,7 @@ public partial class MainViewModel : ObservableObject
     private void NewChat()
     {
         PersistCurrentChat();
-        var chat = new StudioChatItem { Title = $"Sohbet {Chats.Count + 1}" };
+        var chat = new StudioChatItem { Title = Loc.Tf("ChatTitle", Chats.Count + 1) };
         Chats.Add(chat);
         _suppressChatSwitch = true;
         SelectedChat = chat;
@@ -174,7 +216,7 @@ public partial class MainViewModel : ObservableObject
         _currentImageBytes = null;
         RefreshAttachmentHint();
         RefreshModeHint();
-        StatusText = $"{chat.Title} — 5 görsele kadar ekleyebilirsin";
+        StatusText = Loc.Tf("NewChatStatus", chat.Title);
         AddImagesCommand.NotifyCanExecuteChanged();
         AddResultAsInputCommand.NotifyCanExecuteChanged();
     }
@@ -184,9 +226,9 @@ public partial class MainViewModel : ObservableObject
     {
         var dialog = new OpenFileDialog
         {
-            Filter = "Images|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.gif",
+            Filter = Loc.T("ImagesFilter"),
             Multiselect = true,
-            Title = $"Görsel ekle (en fazla {ImageModelPresets.MaxImagesPerChat})"
+            Title = Loc.Tf("AddImagesTitle", ImageModelPresets.MaxImagesPerChat)
         };
 
         if (dialog.ShowDialog() != true)
@@ -201,7 +243,7 @@ public partial class MainViewModel : ObservableObject
         {
             if (Attachments.Count >= ImageModelPresets.MaxImagesPerChat)
             {
-                StatusText = "Bu sohbette en fazla 5 görsel. Yeni Sohbet aç, 5 tane daha ekle.";
+                StatusText = Loc.T("MaxImagesInChat");
                 break;
             }
 
@@ -222,7 +264,7 @@ public partial class MainViewModel : ObservableObject
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to load image {Path}", path);
-                StatusText = $"Görsel okunamadı: {Path.GetFileName(path)}";
+                StatusText = Loc.Tf("ImageReadFailed", Path.GetFileName(path));
             }
         }
 
@@ -276,7 +318,7 @@ public partial class MainViewModel : ObservableObject
 
         if (Attachments.Count >= ImageModelPresets.MaxImagesPerChat)
         {
-            StatusText = "5 görsel doldu. Yeni Sohbet aç veya birini sil.";
+            StatusText = Loc.T("ChatFull");
             return;
         }
 
@@ -285,7 +327,7 @@ public partial class MainViewModel : ObservableObject
             var preview = ImageCodec.LoadDisplay(_currentImageBytes);
             var item = new ImageAttachmentItem
             {
-                FileName = $"sonuc-{DateTime.Now:HHmmss}.jpg",
+                FileName = Loc.Tf("ResultFileName", DateTime.Now.ToString("HHmmss")),
                 Bytes = _currentImageBytes,
                 Preview = preview,
                 Thumbnail = ImageCodec.CreateThumbnail(preview),
@@ -296,7 +338,7 @@ public partial class MainViewModel : ObservableObject
             RefreshCompareSource();
             RefreshAttachmentHint();
             RefreshModeHint();
-            StatusText = "Sonuç bir sonraki düzenlemeye eklendi";
+            StatusText = Loc.T("ResultAdded");
         }
         catch (Exception ex)
         {
@@ -312,7 +354,7 @@ public partial class MainViewModel : ObservableObject
     {
         if (PreviewImage is null || Attachments.Count == 0)
         {
-            StatusText = "Karşılaştırmak için görsel ekle ve üret";
+            StatusText = Loc.T("CompareNeedImages");
             return;
         }
 
@@ -328,13 +370,13 @@ public partial class MainViewModel : ObservableObject
 
         if (string.IsNullOrWhiteSpace(SelectedProfile.ApiKey))
         {
-            StatusText = "API Key missing. Open Settings.";
+            StatusText = Loc.T("ApiKeyMissing");
             return;
         }
 
         IsGenerating = true;
         TranslatedPrompt = string.Empty;
-        StatusText = "Türkçe → İngilizce çevriliyor…";
+        StatusText = Loc.T("Translating");
         _cts = new CancellationTokenSource();
         var dispatcher = Application.Current.Dispatcher;
         var inputBytes = Attachments.Select(a => a.Bytes).ToList();
@@ -350,7 +392,7 @@ public partial class MainViewModel : ObservableObject
             {
                 await dispatcher.InvokeAsync(() =>
                 {
-                    StatusText = "Çeviri başarısız";
+                    StatusText = Loc.T("TranslationFailed");
                     MessageBox.Show(translation.Error, "Halim Labs 3",
                         MessageBoxButton.OK, MessageBoxImage.Warning);
                 });
@@ -368,7 +410,7 @@ public partial class MainViewModel : ObservableObject
                     : $" · {SelectedProfile.Name}";
                 StatusText = (translation.Translated
                     ? $"EN ({translation.Engine}): {englishPrompt}"
-                    : $"Generating{modelNote}…") + (inputBytes.Count > 0 ? $" · {inputBytes.Count} görsel" : "");
+                    : Loc.Tf("Generating", modelNote)) + (inputBytes.Count > 0 ? Loc.Tf("WithImages", inputBytes.Count) : "");
             });
 
             var result = await GenerateWithFilterRetryAsync(
@@ -379,14 +421,14 @@ public partial class MainViewModel : ObservableObject
         }
         catch (OperationCanceledException)
         {
-            await dispatcher.InvokeAsync(() => StatusText = "Cancelled");
+            await dispatcher.InvokeAsync(() => StatusText = Loc.T("Cancelled"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Generate failed");
             await dispatcher.InvokeAsync(() =>
             {
-                StatusText = "Error";
+                StatusText = Loc.T("Error");
                 MessageBox.Show(ex.Message, "Halim Labs 3", MessageBoxButton.OK, MessageBoxImage.Error);
             });
         }
@@ -416,7 +458,7 @@ public partial class MainViewModel : ObservableObject
             if (lookalike is not null)
                 return lookalike;
             return ImageGenerationResult.Fail(
-                NvidiaImageGenerationService.PhotoEditUnavailableMessage, TimeSpan.Zero);
+                Loc.T("PhotoEditUnavailable"), TimeSpan.Zero);
         }
 
         return await GenerateOnceAsync(profile, englishPrompt, inputImages, cancellationToken)
@@ -431,7 +473,7 @@ public partial class MainViewModel : ObservableObject
         CancellationToken cancellationToken)
     {
         await dispatcher.InvokeAsync(() =>
-            StatusText = "Görseller okunuyor, kıyafet tarif edilip yeni kare üretiliyor…");
+            StatusText = Loc.T("ReadingImages"));
 
         var caption = await _captionService
             .BuildTryOnPromptAsync(inputImages, englishPrompt, apiKey, cancellationToken)
@@ -456,7 +498,7 @@ public partial class MainViewModel : ObservableObject
                 var existing = Profiles.FirstOrDefault(ImageModelPresets.LooksLikeFluxDev);
                 if (existing is not null)
                     SelectedProfile = existing;
-                StatusText = "Done · kıyafet giydirme (yeni kare)";
+                StatusText = Loc.T("DoneTryOn");
             });
             return result;
         }
@@ -477,8 +519,8 @@ public partial class MainViewModel : ObservableObject
         {
             if (result.ContentFiltered)
                 PreviewImage = null;
-            StatusText = result.ContentFiltered ? "Filtrelendi" : "Error";
-            MessageBox.Show(result.ErrorMessage ?? "Generation failed.", "Halim Labs 3",
+            StatusText = result.ContentFiltered ? Loc.T("Filtered") : Loc.T("Error");
+            MessageBox.Show(result.ErrorMessage ?? Loc.T("GenerationFailed"), "Halim Labs 3",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
@@ -490,11 +532,11 @@ public partial class MainViewModel : ObservableObject
             {
                 PreviewImage = null;
                 _currentImageBytes = null;
-                StatusText = Attachments.Count > 0 ? "Düzenleme başarısız" : "Filtrelendi";
+                StatusText = Attachments.Count > 0 ? Loc.T("EditFailedStatus") : Loc.T("Filtered");
                 MessageBox.Show(
                     Attachments.Count > 0
-                        ? NvidiaImageGenerationService.EditFailedMessage
-                        : NvidiaImageGenerationService.ContentFilterMessage,
+                        ? Loc.T("EditFailedMessage")
+                        : Loc.T("ContentFilterMessage"),
                     "Halim Labs 3",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
@@ -507,16 +549,16 @@ public partial class MainViewModel : ObservableObject
             RefreshCompareSource();
             PersistCurrentChat();
             var enNote = string.IsNullOrWhiteSpace(TranslatedPrompt) ? string.Empty : " · TR→EN";
-            var editNote = Attachments.Count > 0 ? $" · {Attachments.Count} kaynak" : string.Empty;
-            StatusText = $"Done ({result.Duration.TotalSeconds:0.0}s) · {bmp.PixelWidth}x{bmp.PixelHeight}{enNote}{editNote}";
+            var editNote = Attachments.Count > 0 ? Loc.Tf("WithImages", Attachments.Count) : string.Empty;
+            StatusText = Loc.Tf("DoneStatus", result.Duration.TotalSeconds, bmp.PixelWidth, bmp.PixelHeight, enNote, editNote);
             AddResultAsInputCommand.NotifyCanExecuteChanged();
         }
         catch (Exception decodeEx)
         {
             PreviewImage = null;
-            StatusText = "Error";
+            StatusText = Loc.T("Error");
             MessageBox.Show(
-                $"Image received but could not be displayed.\n{decodeEx.Message}",
+                Loc.Tf("ImageDisplayFailed", decodeEx.Message),
                 "Halim Labs 3",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
@@ -548,7 +590,7 @@ public partial class MainViewModel : ObservableObject
     {
         if (_currentImageBytes is null || _currentImageBytes.Length == 0)
         {
-            StatusText = "No image to save";
+            StatusText = Loc.T("NoImageToSave");
             return;
         }
 
@@ -557,7 +599,7 @@ public partial class MainViewModel : ObservableObject
                      && _currentImageBytes[1] == 0xD8;
         var dialog = new SaveFileDialog
         {
-            Filter = "JPEG Image|*.jpg|PNG Image|*.png",
+            Filter = Loc.T("SaveFilter"),
             FilterIndex = isJpeg ? 1 : 2,
             FileName = $"halimlabs3-{DateTime.Now:yyyyMMdd-HHmmss}.{(isJpeg ? "jpg" : "png")}"
         };
@@ -566,7 +608,7 @@ public partial class MainViewModel : ObservableObject
             return;
 
         File.WriteAllBytes(dialog.FileName, _currentImageBytes);
-        StatusText = "Image saved";
+        StatusText = Loc.T("ImageSaved");
     }
 
     [RelayCommand]
@@ -600,8 +642,8 @@ public partial class MainViewModel : ObservableObject
     {
         var s = _supportInfoProvider.Current;
         Clipboard.SetText(s.UsdtAddress);
-        StatusText = "USDT copied";
-        MessageBox.Show($"USDT (TRC20)\n\n{s.UsdtAddress}", "USDT", MessageBoxButton.OK, MessageBoxImage.Information);
+        StatusText = Loc.T("UsdtCopied");
+        MessageBox.Show(Loc.Tf("UsdtDialog", s.UsdtAddress), "USDT", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     [RelayCommand]
@@ -625,11 +667,11 @@ public partial class MainViewModel : ObservableObject
     private void ShowIban()
     {
         var s = _supportInfoProvider.Current;
-        var text = $"Bank: {s.BankName}\nHolder: {s.IbanHolder}\nIBAN: {s.Iban}\n\nCopy IBAN?";
+        var text = Loc.Tf("IbanDialog", s.BankName, s.IbanHolder, s.Iban);
         if (MessageBox.Show(text, "IBAN", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
         {
             Clipboard.SetText(s.Iban);
-            StatusText = "IBAN copied";
+            StatusText = Loc.T("IbanCopied");
         }
     }
 
@@ -673,17 +715,17 @@ public partial class MainViewModel : ObservableObject
     }
 
     private void RefreshAttachmentHint() =>
-        AttachmentHint = $"{Attachments.Count}/{ImageModelPresets.MaxImagesPerChat} görsel";
+        AttachmentHint = Loc.Tf("AttachmentHint", Attachments.Count, ImageModelPresets.MaxImagesPerChat);
 
     private void RefreshModeHint()
     {
         if (Attachments.Count == 0)
         {
-            ModeHint = "Metinden görsel · NVIDIA";
+            ModeHint = Loc.T("ModeTextToImage");
             return;
         }
 
-        ModeHint = $"{Attachments.Count} görsel · {SelectedProfile?.Name ?? "model"}";
+        ModeHint = Loc.Tf("ModeWithImages", Attachments.Count, SelectedProfile?.Name ?? "model");
     }
 
     internal static bool IsNearlyBlack(BitmapSource source)

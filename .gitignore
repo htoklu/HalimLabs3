@@ -54,6 +54,7 @@ publish/
 **/secrets.json
 **/image-models.json
 **/image-settings.json
+**/ui-settings.json
 **/providers.json
 *nvapi*
 

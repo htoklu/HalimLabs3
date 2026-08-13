@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Threading;
 using HalimLabs.Configuration;
+using HalimLabs.Localization;
 using HalimLabs.Services.Abstractions;
 using HalimLabs.Services.Image;
 using HalimLabs.Services.Persistence;
@@ -91,7 +92,7 @@ public partial class App : Application
         e.Handled = true;
         try
         {
-            MessageBox.Show($"Unexpected error:\n{e.Exception.Message}", "Halim Labs 3",
+            MessageBox.Show(Loc.Tf("UnexpectedError", e.Exception.Message), "Halim Labs 3",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         catch

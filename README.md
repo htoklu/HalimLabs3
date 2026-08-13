@@ -45,6 +45,7 @@ Aynı ücretsiz anahtar sohbet sağlayıcıları (DeepSeek, Llama vb.) için de 
 - Görsel yok: metinden görsel (**FLUX.1-dev**)
 - Fotoğraf ekle: sohbet başına en fazla 5 görsel; **Yeni Sohbet** ile devam
 - 2 görsel (kişi + kıyafet): kısa prompt, örn. `kıyafeti modele giydir`
+- Türkçe / İngilizce dil seçeneği (üst menüden değişir, seçim bu bilgisayarda hatırlanır)
 - Türkçe prompt otomatik İngilizceye çevrilir
 - Kaynak | sonuç yan yana karşılaştırma
 - Koyu tema, Markdown sohbet

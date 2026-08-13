@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HalimLabs.Configuration;
+using HalimLabs.Localization;
 using HalimLabs.Models;
 using HalimLabs.Services.Abstractions;
 
@@ -11,7 +12,7 @@ public partial class ImageProfileItemViewModel : ObservableObject
 {
     public string Id { get; private set; } = Guid.NewGuid().ToString("N");
 
-    [ObservableProperty] private string _name = "New Model";
+    [ObservableProperty] private string _name = Loc.T("NewModel");
     [ObservableProperty] private string _apiKey = string.Empty;
     [ObservableProperty] private string _apiBaseUrl = string.Empty;
     [ObservableProperty] private string _model = string.Empty;
@@ -81,7 +82,7 @@ public partial class SettingsViewModel : ObservableObject
 
         SelectedProfile = Profiles.FirstOrDefault(p => p.Id == store.ActiveProfileId)
                           ?? Profiles.FirstOrDefault();
-        StatusText = $"{Profiles.Count} model(s) loaded";
+        StatusText = Loc.Tf("ModelsLoaded", Profiles.Count);
     }
 
     [RelayCommand]
@@ -90,7 +91,7 @@ public partial class SettingsViewModel : ObservableObject
         var item = ImageProfileItemViewModel.FromPreset(ImageModelPresets.CreateBlank());
         Profiles.Add(item);
         SelectedProfile = item;
-        StatusText = "Added custom model";
+        StatusText = Loc.T("AddedCustom");
     }
 
     [RelayCommand]
@@ -100,7 +101,7 @@ public partial class SettingsViewModel : ObservableObject
         var item = ImageProfileItemViewModel.FromPreset(ImageModelPresets.CreateFluxDev(key));
         Profiles.Add(item);
         SelectedProfile = item;
-        StatusText = "Added FLUX.1-dev";
+        StatusText = Loc.T("AddedFlux");
     }
 
     [RelayCommand]
@@ -110,7 +111,7 @@ public partial class SettingsViewModel : ObservableObject
         var item = ImageProfileItemViewModel.FromPreset(ImageModelPresets.CreateFluxKontext(key));
         Profiles.Add(item);
         SelectedProfile = item;
-        StatusText = "Added FLUX.1-Kontext";
+        StatusText = Loc.T("AddedKontext");
     }
 
     [RelayCommand]
@@ -120,7 +121,7 @@ public partial class SettingsViewModel : ObservableObject
         var item = ImageProfileItemViewModel.FromPreset(ImageModelPresets.CreateFluxKlein(key));
         Profiles.Add(item);
         SelectedProfile = item;
-        StatusText = "Added FLUX.2-klein-4b";
+        StatusText = Loc.T("AddedKlein");
     }
 
     [RelayCommand]
@@ -130,7 +131,7 @@ public partial class SettingsViewModel : ObservableObject
         var item = ImageProfileItemViewModel.FromPreset(ImageModelPresets.CreateQwenHosted(key));
         Profiles.Add(item);
         SelectedProfile = item;
-        StatusText = "Added Qwen-Image (hosted)";
+        StatusText = Loc.T("AddedQwen");
     }
 
     [RelayCommand]
@@ -140,7 +141,7 @@ public partial class SettingsViewModel : ObservableObject
         var item = ImageProfileItemViewModel.FromPreset(ImageModelPresets.CreateQwenSelfHost(key));
         Profiles.Add(item);
         SelectedProfile = item;
-        StatusText = "Added Qwen-Image (local NIM)";
+        StatusText = Loc.T("AddedQwenLocal");
     }
 
     [RelayCommand]
@@ -150,10 +151,10 @@ public partial class SettingsViewModel : ObservableObject
             return;
 
         var copy = ImageProfileItemViewModel.From(SelectedProfile.ToModel().Clone());
-        copy.Name = $"{SelectedProfile.Name} (copy)";
+        copy.Name = Loc.Tf("CopySuffix", SelectedProfile.Name);
         Profiles.Add(copy);
         SelectedProfile = copy;
-        StatusText = "Duplicated model";
+        StatusText = Loc.T("DuplicatedModel");
     }
 
     [RelayCommand]
@@ -161,21 +162,21 @@ public partial class SettingsViewModel : ObservableObject
     {
         if (SelectedProfile is null || Profiles.Count <= 1)
         {
-            StatusText = "Keep at least one model";
+            StatusText = Loc.T("KeepOneModel");
             return;
         }
 
         var index = Profiles.IndexOf(SelectedProfile);
         Profiles.Remove(SelectedProfile);
         SelectedProfile = Profiles.ElementAtOrDefault(Math.Clamp(index, 0, Profiles.Count - 1));
-        StatusText = "Removed model";
+        StatusText = Loc.T("RemovedModel");
     }
 
     [RelayCommand]
     private async Task SaveAsync()
     {
         await _settingsRepository.SaveAsync(ToStore(keepActive: true)).ConfigureAwait(true);
-        StatusText = "Saved";
+        StatusText = Loc.T("Saved");
     }
 
     [RelayCommand]
@@ -184,13 +185,13 @@ public partial class SettingsViewModel : ObservableObject
         if (SelectedProfile is null)
         {
             TestSuccess = false;
-            TestMessage = "Select a model first";
+            TestMessage = Loc.T("SelectModelFirst");
             return;
         }
 
         IsTesting = true;
         TestSuccess = null;
-        TestMessage = "Testing…";
+        TestMessage = Loc.T("Testing");
         try
         {
             var result = await _imageService.GenerateAsync(
@@ -199,15 +200,15 @@ public partial class SettingsViewModel : ObservableObject
 
             TestSuccess = result.Success;
             TestMessage = result.Success
-                ? $"OK ({result.Duration.TotalSeconds:0.0}s)"
-                : (result.ErrorMessage ?? "Failed");
-            StatusText = result.Success ? "Connection OK" : "Connection failed";
+                ? Loc.Tf("TestOk", result.Duration.TotalSeconds)
+                : (result.ErrorMessage ?? Loc.T("Failed"));
+            StatusText = result.Success ? Loc.T("ConnectionOk") : Loc.T("ConnectionFailed");
         }
         catch (Exception ex)
         {
             TestSuccess = false;
             TestMessage = ex.Message;
-            StatusText = "Connection failed";
+            StatusText = Loc.T("ConnectionFailed");
         }
         finally
         {

@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using HalimLabs.Configuration;
+using HalimLabs.Localization;
 using HalimLabs.Models;
 using HalimLabs.Services.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -39,13 +40,13 @@ public sealed class NvidiaImageGenerationService : IImageGenerationService
         try
         {
             if (string.IsNullOrWhiteSpace(profile.ApiKey))
-                return ImageGenerationResult.Fail("API Key is required.", DateTime.UtcNow - started);
+                return ImageGenerationResult.Fail(Loc.T("ApiKeyRequired"), DateTime.UtcNow - started);
 
             if (string.IsNullOrWhiteSpace(prompt))
-                return ImageGenerationResult.Fail("Prompt is required.", DateTime.UtcNow - started);
+                return ImageGenerationResult.Fail(Loc.T("PromptRequired"), DateTime.UtcNow - started);
 
             if (string.IsNullOrWhiteSpace(profile.ApiBaseUrl))
-                return ImageGenerationResult.Fail("API Base URL is required.", DateTime.UtcNow - started);
+                return ImageGenerationResult.Fail(Loc.T("ApiBaseUrlRequired"), DateTime.UtcNow - started);
 
             var seed = profile.RandomSeed
                 ? Random.Shared.Next(0, int.MaxValue)
@@ -68,19 +69,19 @@ public sealed class NvidiaImageGenerationService : IImageGenerationService
             {
                 _logger.LogWarning("Image API failed: {Status} {Body}", response.StatusCode, Trim(body));
                 if (IsContentFilteredPayload(body) || (int)response.StatusCode == 451)
-                    return ImageGenerationResult.Filtered(ContentFilterMessage, duration);
+                    return ImageGenerationResult.Filtered(Loc.T("ContentFilterMessage"), duration);
                 return ImageGenerationResult.Fail(FormatError((int)response.StatusCode, body), duration);
             }
 
             if (IsContentFilteredPayload(body))
             {
                 _logger.LogWarning("Image API content filter: {Body}", Trim(body));
-                return ImageGenerationResult.Filtered(ContentFilterMessage, duration);
+                return ImageGenerationResult.Filtered(Loc.T("ContentFilterMessage"), duration);
             }
 
             var bytes = ExtractImageBytes(body);
             if (bytes is null || bytes.Length == 0)
-                return ImageGenerationResult.Fail("Response did not contain image data.", duration);
+                return ImageGenerationResult.Fail(Loc.T("NoImageData"), duration);
 
             return ImageGenerationResult.Ok(bytes, duration);
         }
@@ -335,13 +336,9 @@ public sealed class NvidiaImageGenerationService : IImageGenerationService
         }
     }
 
-    internal const string ContentFilterMessage =
-        "NVIDIA güvenlik filtresi bu görseli kesti — bu yüzden siyah kare geliyor.\n\n" +
-        "Kıyafet giydirme masum bir istek olsa da cloud FLUX bazen kişi fotoğrafını keser. Generate'e tekrar bas (farklı seed).";
+    internal static string ContentFilterMessage => Loc.T("ContentFilterMessage");
 
-    internal const string EditFailedMessage =
-        "Görsel düzenleme başarısız oldu (siyah kare veya geçersiz yanıt).\n\n" +
-        "Üstte FLUX.2-klein-4b seçili olsun. İki görsel: 1) kişi, 2) kıyafet. Promptu kısa tut, örneğin: put the yellow shirt on the person, keep the same face and background.";
+    internal static string EditFailedMessage => Loc.T("EditFailedMessage");
 
     private static bool IsContentFilteredPayload(string json)
     {
@@ -435,13 +432,13 @@ public sealed class NvidiaImageGenerationService : IImageGenerationService
         var detail = Trim(body);
         return statusCode switch
         {
-            401 or 403 => $"Unauthorized ({statusCode}). Check API key. {detail}",
-            404 => $"Endpoint not found (404). Bu model NVIDIA hesabında cloud olarak açık değil. {detail}",
+            401 or 403 => Loc.Tf("Unauthorized", statusCode, detail),
+            404 => Loc.Tf("EndpointNotFound", detail),
             422 => FormatUnprocessable(detail),
-            429 => $"Rate limit (429). Wait and try again. {detail}",
-            529 => $"Service busy (529). Try again shortly. {detail}",
-            >= 500 => $"Server error ({statusCode}). {detail}",
-            _ => $"API error {statusCode}: {detail}"
+            429 => Loc.Tf("RateLimit", detail),
+            529 => Loc.Tf("ServiceBusy", detail),
+            >= 500 => Loc.Tf("ServerError", statusCode, detail),
+            _ => Loc.Tf("ApiError", statusCode, detail)
         };
     }
 
@@ -452,9 +449,9 @@ public sealed class NvidiaImageGenerationService : IImageGenerationService
 
         if (detail.Contains("extra_forbidden", StringComparison.OrdinalIgnoreCase) ||
             detail.Contains("Extra inputs are not permitted", StringComparison.OrdinalIgnoreCase))
-            return $"İstek reddedildi (422). NVIDIA bu alanı kabul etmiyor. {detail}";
+            return Loc.Tf("Rejected422Field", detail);
 
-        return $"İstek reddedildi (422). {detail}";
+        return Loc.Tf("Rejected422", detail);
     }
 
     internal static bool IsPreviewImageReject(string? text) =>
@@ -467,18 +464,9 @@ public sealed class NvidiaImageGenerationService : IImageGenerationService
          text.Contains("404 page not found", StringComparison.OrdinalIgnoreCase) ||
          text.Contains("(404)", StringComparison.Ordinal));
 
-    internal const string PhotoEditUnavailableMessage =
-        "Bu NVIDIA key ile kendi fotoğrafını düzenleyemiyoruz.\n\n" +
-        "FLUX.1-Kontext ve Qwen-Image-Edit hesabında cloud olarak yok (404).\n" +
-        "FLUX.2-Klein var ama senin fotoğrafını almıyor; sadece NVIDIA'nın örnek resimleri.\n\n" +
-        "Metinden görsel için model menüsünden FLUX.1-dev seç, görselleri kaldır.\n" +
-        "Kıyafet giydirme için bu modellerin NVIDIA hesabında açık olması veya lokal NIM gerekir.";
+    internal static string PhotoEditUnavailableMessage => Loc.T("PhotoEditUnavailable");
 
-    internal const string HostedPreviewImageMessage =
-        "NVIDIA cloud bu modele kendi fotoğrafını yükletmiyor — sadece sitedeki örnek resimleri kabul ediyor (example_id).\n\n" +
-        "Kıyafet giydirme için program Kontext / Qwen-Image-Edit ile tekrar dener. " +
-        "Onlar da aynı hatayı verirse bu NVIDIA key ile fotoğraf düzenleme kapalıdır; " +
-        "Settings'ten lokal NIM (localhost) gerekir.";
+    internal static string HostedPreviewImageMessage => Loc.T("HostedPreviewImage");
 
     private static void WriteLastResponse(int statusCode, string? url, string body)
     {
@@ -504,7 +492,7 @@ public sealed class NvidiaImageGenerationService : IImageGenerationService
     private static string Trim(string body)
     {
         if (string.IsNullOrWhiteSpace(body))
-            return "No details.";
+            return Loc.T("NoDetails");
         body = body.Trim();
         return body.Length > 400 ? body[..400] + "…" : body;
     }

@@ -10,7 +10,14 @@ public partial class HelpWindow : Window
         Loaded += (_, _) =>
         {
             if (DataContext is ViewModels.HelpViewModel vm)
+            {
                 HelpViewer.Markdown = vm.Content;
+                vm.PropertyChanged += (_, args) =>
+                {
+                    if (args.PropertyName is nameof(ViewModels.HelpViewModel.Content) or null)
+                        HelpViewer.Markdown = vm.Content;
+                };
+            }
         };
     }
 
