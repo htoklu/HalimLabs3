@@ -1,28 +1,32 @@
 # Halim Labs 3
 
-Windows için NVIDIA Build destekli görsel stüdyosu. Metinden görsel üret, fotoğraf ekle, kıyafet giydirmeyi dene. Tek EXE — kurulum yok.
+Windows için NVIDIA Build destekli görsel stüdyosu. Metinden görsel üret, fotoğraf ekle, kıyafet giydirmeyi dene. Kurulum yok — ZIP’i açıp çalıştırın.
 
 **API anahtarları bu depoda yoktur.** Ücretsiz `nvapi-...` anahtarını [NVIDIA Build](https://build.nvidia.com) sitesinden kendiniz alın ve Ayarlar’a yapıştırın.
 
+## ZIP olarak indir
+
+Tarayıcı ham `.exe` indirmelerinde “tehlikeli / Sil” uyarısı çıkar. O yüzden program **ZIP** olarak yayınlanır.
+
+1. [Releases](https://github.com/htoklu/HalimLabs3/releases/latest) sayfasından `HalimLabs3.zip` indirin.
+2. ZIP’i bir klasöre çıkarın.
+3. `HalimLabs3.exe` dosyasına çift tıklayın.
+
+Windows SmartScreen ilk açılışta uyarı verebilir: **Ek bilgi → Yine de çalıştır**.
+
 ## Git clone ile indir ve çalıştır
 
-Kaynak kod ve hazır `dist\HalimLabs3.exe` birlikte gelir. Kurulum gerekmez.
+Kaynak kod ve `dist\HalimLabs3.zip` birlikte gelir. Ham EXE GitHub’da durmaz; clone sonrası ZIP açılır.
 
 ```powershell
 git clone https://github.com/htoklu/HalimLabs3.git
 cd HalimLabs3
-.\dist\HalimLabs3.exe
+.\run.bat
 ```
 
-veya aynı klasörde `run.bat` dosyasına çift tıklayın.
-
-Windows SmartScreen ilk açılışta uyarı verebilir: **Ek bilgi → Yine de çalıştır**.
+`run.bat` ZIP’i `dist\` içine açar ve programı başlatır. İsterseniz ZIP’i kendiniz de açabilirsiniz: `dist\HalimLabs3.zip`.
 
 Sonra Ayarlar’a kendi ücretsiz NVIDIA anahtarınızı yapıştırın (aşağıdaki bölüm).
-
-## EXE olarak indir
-
-[Releases](https://github.com/htoklu/HalimLabs3/releases) sayfasından yalnızca `HalimLabs3.exe` de indirilebilir (.NET runtime gömülüdür).
 
 ## Ücretsiz NVIDIA API anahtarı
 
@@ -32,7 +36,7 @@ Sonra Ayarlar’a kendi ücretsiz NVIDIA anahtarınızı yapıştırın (aşağ�
 4. Halim Labs 3’ü açın → **Ayarlar**.
 5. Görsel modeli (FLUX.1-dev önerilir) seçin, anahtarı **API Key** kutusuna yapıştırın, kaydedin.
 
-Aynı ücretsiz anahtar sohbet sağlayıcıları (DeepSeek, Llama vb.) için de kullanılabilir. Anahtar bilgisayarınızda `%LocalAppData%\HalimLabs3\` altında saklanır; GitHub’a veya EXE içine yazılmaz.
+Aynı ücretsiz anahtar sohbet sağlayıcıları (DeepSeek, Llama vb.) için de kullanılabilir. Anahtar bilgisayarınızda `%LocalAppData%\HalimLabs3\` altında saklanır; GitHub’a veya ZIP içine yazılmaz.
 
 ## Ne yapar
 
@@ -53,13 +57,13 @@ Gereksinim: [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (Wind
 dotnet run --project src\HalimLabs\HalimLabs.csproj
 ```
 
-Tek EXE üretmek için `build.bat` veya:
+Tek EXE + ZIP üretmek için `build.bat` veya:
 
 ```powershell
 dotnet publish src\HalimLabs\HalimLabs.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o dist
 ```
 
-Çıktı: `dist\HalimLabs3.exe`
+Çıktı: `dist\HalimLabs3.exe` (yerel) ve `build.bat` ile `dist\HalimLabs3.zip`
 
 Visual Studio 2022 ile `HalimLabs.sln` dosyasını da açabilirsiniz.
 

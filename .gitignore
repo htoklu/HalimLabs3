@@ -63,6 +63,7 @@ tools/
 # Local helper files
 .github-description.txt
 
-# Local publish scratch (tracked portable build is dist/)
+# Local publish scratch. Tracked portable build is dist/HalimLabs3.zip
 publish-single/
 dist/*.pdb
+dist/*.exe
