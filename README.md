@@ -6,17 +6,15 @@ Windows için NVIDIA Build destekli görsel stüdyosu. Metinden görsel üret, f
 
 ## ZIP olarak indir
 
-Tarayıcı ham `.exe` indirmelerinde “tehlikeli / Sil” uyarısı çıkar. O yüzden program **ZIP** olarak yayınlanır.
+Program tek bir ZIP dosyası olarak yayınlanır. Kurulum gerekmez.
 
 1. [Releases](https://github.com/htoklu/HalimLabs3/releases/latest) sayfasından `HalimLabs3.zip` indirin.
 2. ZIP’i bir klasöre çıkarın.
 3. `HalimLabs3.exe` dosyasına çift tıklayın.
 
-Windows SmartScreen ilk açılışta uyarı verebilir: **Ek bilgi → Yine de çalıştır**.
-
 ## Git clone ile indir ve çalıştır
 
-Kaynak kod ve `dist\HalimLabs3.zip` birlikte gelir. Ham EXE GitHub’da durmaz; clone sonrası ZIP açılır.
+Kaynak kod ve hazır `dist\HalimLabs3.zip` birlikte gelir. Clone sonrası ZIP’i açıp çalıştırabilirsiniz.
 
 ```powershell
 git clone https://github.com/htoklu/HalimLabs3.git
