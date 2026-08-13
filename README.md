@@ -6,6 +6,8 @@ Windows için NVIDIA Build destekli görsel stüdyosu. Metinden görsel üret, f
 
 **API anahtarları bu depoda yoktur.** Ücretsiz `nvapi-...` anahtarını [NVIDIA Build](https://build.nvidia.com) sitesinden kendiniz alın ve Ayarlar’a yapıştırın.
 
+![Halim Labs 3 — metinden görsel örneği](docs/screenshot.png)
+
 ## ZIP olarak indir
 
 Program tek bir ZIP dosyası olarak yayınlanır. Kurulum gerekmez.
