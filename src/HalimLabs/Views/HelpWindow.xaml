@@ -1,0 +1,43 @@
+<Window x:Class="HalimLabs.Views.HelpWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:HalimLabs.Controls"
+        Title="Help — Halim Labs 3"
+        Height="680"
+        Width="780"
+        MinHeight="480"
+        MinWidth="560"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource AppBgBrush}">
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="{Binding Title}"
+                   Style="{StaticResource SectionTitle}"/>
+
+        <Border Grid.Row="1"
+                Background="{StaticResource PanelBgBrush}"
+                BorderBrush="{StaticResource BorderBrushKey}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="16">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <controls:MarkdownViewer x:Name="HelpViewer"/>
+            </ScrollViewer>
+        </Border>
+
+        <Button Grid.Row="2"
+                Content="Close"
+                Style="{StaticResource PrimaryButton}"
+                HorizontalAlignment="Right"
+                Margin="0,12,0,0"
+                IsCancel="True"
+                Click="Close_Click"/>
+    </Grid>
+</Window>

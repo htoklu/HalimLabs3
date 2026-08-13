@@ -1,0 +1,54 @@
+# Halim Labs 3
+
+Windows için NVIDIA Build destekli görsel stüdyosu. Metinden görsel üret, fotoğraf ekle, kıyafet giydirmeyi dene. Tek EXE — kurulum yok.
+
+**API anahtarları bu depoda yoktur.** Ücretsiz `nvapi-...` anahtarını [NVIDIA Build](https://build.nvidia.com) sitesinden kendiniz alın ve Ayarlar’a yapıştırın.
+
+## İndir
+
+Kurulum dosyası yok. [Releases](https://github.com/htoklu/HalimLabs3/releases) sayfasından `HalimLabs3.exe` indirip çalıştırın (.NET runtime gömülüdür).
+
+Windows SmartScreen ilk açılışta uyarı verebilir: **Ek bilgi → Yine de çalıştır**.
+
+## Ücretsiz NVIDIA API anahtarı
+
+1. [build.nvidia.com](https://build.nvidia.com) adresine gidin ve NVIDIA / e-posta ile giriş yapın.
+2. Bir model sayfası açın (örnek: **FLUX.1-dev** veya **Llama**).
+3. **Get API Key** ile ücretsiz `nvapi-...` anahtarını oluşturun.
+4. Halim Labs 3’ü açın → **Ayarlar**.
+5. Görsel modeli (FLUX.1-dev önerilir) seçin, anahtarı **API Key** kutusuna yapıştırın, kaydedin.
+
+Aynı ücretsiz anahtar sohbet sağlayıcıları (DeepSeek, Llama vb.) için de kullanılabilir. Anahtar bilgisayarınızda `%LocalAppData%\HalimLabs3\` altında saklanır; GitHub’a veya EXE içine yazılmaz.
+
+## Ne yapar
+
+- Görsel yok: metinden görsel (**FLUX.1-dev**)
+- Fotoğraf ekle: sohbet başına en fazla 5 görsel; **Yeni Sohbet** ile devam
+- 2 görsel (kişi + kıyafet): kısa prompt, örn. `kıyafeti modele giydir`
+- Türkçe prompt otomatik İngilizceye çevrilir
+- Kaynak | sonuç yan yana karşılaştırma
+- Koyu tema, Markdown sohbet
+
+NVIDIA Build **ücretsiz / preview** uçları sizin JPEG’inizi piksel piksel düzenlemez (Klein/Kontext cloud’da `example_id` ister). Program kişi ve kıyafeti okuyup **benzer yeni bir kare** üretir; yüz birebir ChatGPT/Gemini kadar aynı olmayabilir.
+
+## Kaynaktan derleme
+
+Gereksinim: [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (Windows).
+
+```powershell
+dotnet publish src\HalimLabs\HalimLabs.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish-single
+```
+
+Çıktı: `publish-single\HalimLabs3.exe`
+
+Visual Studio 2022 ile `HalimLabs.sln` dosyasını da açabilirsiniz.
+
+## Gizlilik
+
+- Repodaki kod ve varsayılan ayarlarda API Key alanları **boştur**.
+- Kendi anahtarınızı asla commit etmeyin, Issue/PR’a yapıştırmayın.
+- Çalışma ayarları: `%LocalAppData%\HalimLabs3\image-models.json`
+
+## Destek
+
+Geliştirici: [Halim Toklu](https://github.com/htoklu) · [Ko-fi](https://ko-fi.com/htoklu)

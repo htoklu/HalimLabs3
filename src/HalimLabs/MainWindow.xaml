@@ -1,0 +1,312 @@
+﻿<Window x:Class="HalimLabs.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:HalimLabs.ViewModels"
+        Title="Halim Labs 3"
+        Height="860"
+        Width="1280"
+        MinHeight="640"
+        MinWidth="1000"
+        AllowDrop="True"
+        Drop="OnDrop"
+        DragOver="OnDragOver"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource AppBgBrush}"
+        Icon="pack://application:,,,/Resources/HalimLabs.ico">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="56"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Background="{StaticResource PanelBgBrush}"
+                BorderBrush="{StaticResource BorderBrushKey}"
+                BorderThickness="0,0,0,1"
+                Padding="16,0">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Source="pack://application:,,,/Resources/halimlabs-icon.png"
+                           Width="28" Height="28" Margin="0,0,10,0"
+                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="Halim Labs 3"
+                               FontFamily="{StaticResource BrandFont}"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"/>
+
+                    <TextBlock Text="Model"
+                               Style="{StaticResource MutedText}"
+                               Margin="22,0,8,0"
+                               VerticalAlignment="Center"/>
+                    <ComboBox Style="{StaticResource DarkComboBox}"
+                              Width="280"
+                              MaxDropDownHeight="420"
+                              VerticalAlignment="Center"
+                              ItemsSource="{Binding Profiles}"
+                              SelectedItem="{Binding SelectedProfile}"
+                              ToolTip="Switch model (like Cursor agent picker)">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,2">
+                                    <TextBlock Text="{Binding Name}"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding Model}"
+                                               FontSize="11"
+                                               Margin="0,2,0,0"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Content="Yeni Sohbet" Style="{StaticResource GhostButton}" Margin="0,0,8,0" Command="{Binding NewChatCommand}"/>
+                    <Button Content="Help" Style="{StaticResource GhostButton}" Margin="0,0,8,0" Command="{Binding OpenHelpCommand}"/>
+                    <Button Content="Settings" Style="{StaticResource PrimaryButton}" Command="{Binding OpenSettingsCommand}"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Row="1" Margin="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource BorderBrushKey}"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Margin="0,0,12,0"
+                    Padding="8">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top"
+                               Text="Sohbetler"
+                               FontWeight="SemiBold"
+                               Margin="4,2,4,8"/>
+                    <TextBlock DockPanel.Dock="Bottom"
+                               Text="Her sohbette en fazla 5 görsel. Yeni sohbette 5 tane daha."
+                               Style="{StaticResource MutedText}"
+                               TextWrapping="Wrap"
+                               Margin="4,8,4,2"
+                               FontSize="11"/>
+                    <ListBox ItemsSource="{Binding Chats}"
+                             SelectedItem="{Binding SelectedChat}"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             ItemContainerStyle="{StaticResource ProviderListItem}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Title}"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontWeight="SemiBold"
+                                           Margin="4,6"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <Border Grid.Column="1"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource BorderBrushKey}"
+                    BorderThickness="1"
+                    CornerRadius="10">
+                <Grid>
+                    <Border Background="#FF0E0E12" CornerRadius="9" Margin="1"/>
+
+                    <Image Source="{Binding PreviewImage}"
+                           Stretch="Uniform"
+                           Margin="12"
+                           SnapsToDevicePixels="True"
+                           RenderOptions.BitmapScalingMode="HighQuality"
+                           Visibility="{Binding IsCompareMode, Converter={StaticResource InverseBoolToVisibility}}"/>
+
+                    <Grid Margin="12"
+                          Visibility="{Binding IsCompareMode, Converter={StaticResource BoolToVisibility}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="Kaynak" Style="{StaticResource MutedText}" Margin="0,0,0,6"/>
+                            <Image Source="{Binding CompareSourceImage}"
+                                   Stretch="Uniform"
+                                   RenderOptions.BitmapScalingMode="HighQuality"/>
+                        </DockPanel>
+                        <Border Grid.Column="1" Background="{StaticResource BorderBrushKey}"/>
+                        <DockPanel Grid.Column="2">
+                            <TextBlock DockPanel.Dock="Top" Text="Sonuç" Style="{StaticResource MutedText}" Margin="0,0,0,6"/>
+                            <Image Source="{Binding PreviewImage}"
+                                   Stretch="Uniform"
+                                   RenderOptions.BitmapScalingMode="HighQuality"/>
+                        </DockPanel>
+                    </Grid>
+
+                    <TextBlock Text="Prompt yaz veya görsel sürükle · Generate"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Style="{StaticResource MutedText}"
+                               FontSize="15"
+                               Visibility="{Binding PreviewImage, Converter={StaticResource EmptyToVisibility}}"/>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2"
+                Background="{StaticResource PanelBgBrush}"
+                BorderBrush="{StaticResource BorderBrushKey}"
+                BorderThickness="0,1,0,0"
+                Padding="16,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,8">
+                    <Button DockPanel.Dock="Left"
+                            Content="+ Görsel"
+                            Style="{StaticResource GhostButton}"
+                            Command="{Binding AddImagesCommand}"
+                            Margin="0,0,8,0"/>
+                    <Button DockPanel.Dock="Left"
+                            Content="Sonucu ekle"
+                            Style="{StaticResource GhostButton}"
+                            Command="{Binding AddResultAsInputCommand}"
+                            Margin="0,0,8,0"
+                            ToolTip="Üretilen görseli sonraki düzenlemeye kaynak olarak ekle"/>
+                    <Button DockPanel.Dock="Left"
+                            Content="Karşılaştır"
+                            Style="{StaticResource GhostButton}"
+                            Command="{Binding ToggleCompareCommand}"
+                            Margin="0,0,8,0"/>
+                    <TextBlock VerticalAlignment="Center"
+                               Style="{StaticResource MutedText}"
+                               Text="{Binding AttachmentHint}"/>
+                </DockPanel>
+
+                <ItemsControl Grid.Row="1" Grid.ColumnSpan="2"
+                              ItemsSource="{Binding Attachments}"
+                              Margin="0,0,0,8"
+                              Visibility="{Binding Attachments.Count, Converter={StaticResource NotEmptyToVisibility}}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:ImageAttachmentItem}">
+                            <Border Width="88" Margin="0,0,8,8" Padding="4"
+                                    Background="{StaticResource SurfaceBrush}"
+                                    BorderThickness="2"
+                                    CornerRadius="8">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="BorderBrush" Value="Transparent"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsPrimary}" Value="True">
+                                                <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right"
+                                            Content="×"
+                                            Style="{StaticResource GhostButton}"
+                                            Padding="6,0"
+                                            Command="{Binding DataContext.RemoveAttachmentCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"/>
+                                    <Button Background="Transparent"
+                                            BorderThickness="0"
+                                            Command="{Binding DataContext.SelectAttachmentCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"
+                                            ToolTip="{Binding FileName}">
+                                        <Image Source="{Binding Thumbnail}"
+                                               Width="64" Height="64"
+                                               Stretch="UniformToFill"
+                                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    </Button>
+                                </DockPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBox Grid.Row="2" Grid.Column="0"
+                         Style="{StaticResource DarkTextBox}"
+                         Text="{Binding Prompt, UpdateSourceTrigger=PropertyChanged}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         MinHeight="64"
+                         MaxHeight="140"
+                         VerticalScrollBarVisibility="Auto"/>
+
+                <StackPanel Grid.Row="2" Grid.Column="1"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Bottom"
+                            Margin="8,0,0,0">
+                    <Button Content="Stop"
+                            Style="{StaticResource GhostButton}"
+                            Margin="0,0,8,0"
+                            Command="{Binding StopCommand}"
+                            Visibility="{Binding IsGenerating, Converter={StaticResource BoolToVisibility}}"/>
+                    <Button Content="Save Image"
+                            Style="{StaticResource GhostButton}"
+                            Margin="0,0,8,0"
+                            Command="{Binding SaveImageCommand}"/>
+                    <Button Content="Generate"
+                            Style="{StaticResource PrimaryButton}"
+                            MinWidth="110"
+                            Command="{Binding GenerateCommand}"/>
+                </StackPanel>
+
+                <TextBlock Grid.Row="3" Grid.ColumnSpan="2"
+                           Margin="2,8,0,0"
+                           Style="{StaticResource MutedText}"
+                           TextWrapping="Wrap"
+                           Visibility="{Binding TranslatedPrompt, Converter={StaticResource NotEmptyToVisibility}}">
+                    <Run Text="İngilizce prompt: "/>
+                    <Run Text="{Binding TranslatedPrompt}" FontStyle="Italic"/>
+                </TextBlock>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="3"
+                Background="#FF18181C"
+                BorderBrush="{StaticResource BorderBrushKey}"
+                BorderThickness="0,1,0,0"
+                Padding="16,10">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding FooterText}" Style="{StaticResource MutedText}" Margin="0,0,16,0"/>
+                    <TextBlock Text="{Binding SupportText}" Margin="0,0,16,0"/>
+                    <TextBlock Text="{Binding ModeHint}" Style="{StaticResource MutedText}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <TextBlock Text="{Binding StatusText}" Style="{StaticResource MutedText}" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                    <Button Content="Copy USDT Address" Style="{StaticResource GhostButton}" Margin="0,0,8,0" Command="{Binding CopyUsdtCommand}"/>
+                    <Button Content="Open Ko-fi" Style="{StaticResource GhostButton}" Margin="0,0,8,0" Command="{Binding OpenKofiCommand}"/>
+                    <Button Content="IBAN Information" Style="{StaticResource GhostButton}" Command="{Binding ShowIbanCommand}"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>
