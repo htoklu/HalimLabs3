@@ -294,10 +294,9 @@
                            Margin="2,8,0,0"
                            Style="{StaticResource MutedText}"
                            TextWrapping="Wrap"
-                           Visibility="{Binding TranslatedPrompt, Converter={StaticResource NotEmptyToVisibility}}">
-                    <Run Text="{Binding [EnglishPromptPrefix], Source={x:Static loc:Loc.Current}}"/>
-                    <Run Text="{Binding TranslatedPrompt}" FontStyle="Italic"/>
-                </TextBlock>
+                           FontStyle="Italic"
+                           Text="{Binding TranslatedPromptLine}"
+                           Visibility="{Binding TranslatedPrompt, Converter={StaticResource NotEmptyToVisibility}}"/>
             </Grid>
         </Border>
 

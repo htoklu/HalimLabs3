@@ -81,6 +81,11 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _attachmentHint = Loc.Tf("AttachmentHint", 0, ImageModelPresets.MaxImagesPerChat);
     [ObservableProperty] private string _modeHint = Loc.T("ModeTextToImage");
 
+    public string TranslatedPromptLine =>
+        string.IsNullOrWhiteSpace(TranslatedPrompt)
+            ? string.Empty
+            : Loc.T("EnglishPromptPrefix") + TranslatedPrompt;
+
     public bool CanGenerate =>
         !IsGenerating && !string.IsNullOrWhiteSpace(Prompt) && SelectedProfile is not null;
 
@@ -89,6 +94,8 @@ public partial class MainViewModel : ObservableObject
                                 Attachments.Count < ImageModelPresets.MaxImagesPerChat;
 
     partial void OnPromptChanged(string value) => GenerateCommand.NotifyCanExecuteChanged();
+    partial void OnTranslatedPromptChanged(string value) =>
+        OnPropertyChanged(nameof(TranslatedPromptLine));
     partial void OnIsGeneratingChanged(bool value)
     {
         GenerateCommand.NotifyCanExecuteChanged();
@@ -173,6 +180,7 @@ public partial class MainViewModel : ObservableObject
 
         RefreshAttachmentHint();
         RefreshModeHint();
+        OnPropertyChanged(nameof(TranslatedPromptLine));
         if (!IsGenerating)
             RefreshReadyStatus();
     }
