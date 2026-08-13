@@ -2,6 +2,8 @@
 
 Windows için NVIDIA Build destekli görsel stüdyosu. Metinden görsel üret, fotoğraf ekle, kıyafet giydirmeyi dene. Kurulum yok — ZIP’i açıp çalıştırın.
 
+**Windows 10 ve 11** (64-bit) masaüstü uygulamasıdır. macOS veya Linux’ta çalışmaz.
+
 **API anahtarları bu depoda yoktur.** Ücretsiz `nvapi-...` anahtarını [NVIDIA Build](https://build.nvidia.com) sitesinden kendiniz alın ve Ayarlar’a yapıştırın.
 
 ## ZIP olarak indir
