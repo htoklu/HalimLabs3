@@ -4,11 +4,25 @@ Windows için NVIDIA Build destekli görsel stüdyosu. Metinden görsel üret, f
 
 **API anahtarları bu depoda yoktur.** Ücretsiz `nvapi-...` anahtarını [NVIDIA Build](https://build.nvidia.com) sitesinden kendiniz alın ve Ayarlar’a yapıştırın.
 
-## İndir
+## Git clone ile indir ve çalıştır
 
-Kurulum dosyası yok. [Releases](https://github.com/htoklu/HalimLabs3/releases) sayfasından `HalimLabs3.exe` indirip çalıştırın (.NET runtime gömülüdür).
+Kaynak kod ve hazır `dist\HalimLabs3.exe` birlikte gelir. Kurulum gerekmez.
+
+```powershell
+git clone https://github.com/htoklu/HalimLabs3.git
+cd HalimLabs3
+.\dist\HalimLabs3.exe
+```
+
+veya aynı klasörde `run.bat` dosyasına çift tıklayın.
 
 Windows SmartScreen ilk açılışta uyarı verebilir: **Ek bilgi → Yine de çalıştır**.
+
+Sonra Ayarlar’a kendi ücretsiz NVIDIA anahtarınızı yapıştırın (aşağıdaki bölüm).
+
+## EXE olarak indir
+
+[Releases](https://github.com/htoklu/HalimLabs3/releases) sayfasından yalnızca `HalimLabs3.exe` de indirilebilir (.NET runtime gömülüdür).
 
 ## Ücretsiz NVIDIA API anahtarı
 
@@ -33,13 +47,19 @@ NVIDIA Build **ücretsiz / preview** uçları sizin JPEG’inizi piksel piksel d
 
 ## Kaynaktan derleme
 
-Gereksinim: [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (Windows).
+Gereksinim: [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (Windows). `git clone` sonrası:
 
 ```powershell
-dotnet publish src\HalimLabs\HalimLabs.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish-single
+dotnet run --project src\HalimLabs\HalimLabs.csproj
 ```
 
-Çıktı: `publish-single\HalimLabs3.exe`
+Tek EXE üretmek için `build.bat` veya:
+
+```powershell
+dotnet publish src\HalimLabs\HalimLabs.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o dist
+```
+
+Çıktı: `dist\HalimLabs3.exe`
 
 Visual Studio 2022 ile `HalimLabs.sln` dosyasını da açabilirsiniz.
 

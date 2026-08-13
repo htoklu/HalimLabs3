@@ -63,5 +63,6 @@ tools/
 # Local helper files
 .github-description.txt
 
-# Built EXE lives on GitHub Releases, not in git history
+# Local publish scratch (tracked portable build is dist/)
 publish-single/
+dist/*.pdb
